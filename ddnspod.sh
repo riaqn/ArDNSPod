@@ -1,4 +1,3 @@
-
 #!/bin/sh
 
 #################################################
@@ -16,13 +15,6 @@ arPass=arMail=""
 arIpAdress() {
     local inter="http://members.3322.org/dyndns/getip"
     wget --quiet --output-document=- $inter
-}
-
-# 查询域名地址
-# 参数: 待查询域名
-arNslookup() {
-    local inter="http://119.29.29.29/d?dn="
-    wget --quiet --output-document=- $inter$1
 }
 
 # 读取接口数据
@@ -44,34 +36,25 @@ arDdnsUpdate() {
     # 获得记录ID
     recordID=$(arApiPost "Record.List" "domain_id=${domainID}&sub_domain=${2}")
     recordID=$(echo $recordID | sed 's/.\+\[{"id":"\([0-9]\+\)".\+/\1/')
-    # 更新记录IP
-    recordRS=$(arApiPost "Record.Ddns" "domain_id=${domainID}&record_id=${recordID}&sub_domain=${2}&record_line=默认")
-    recordCD=$(echo $recordRS | sed 's/.\+{"code":"\([0-9]\+\)".\+/\1/')
-    # 输出记录IP
-    if [ "$recordCD" == "1" ]; then
-        echo $recordRS | sed 's/.\+,"value":"\([0-9\.]\+\)".\+/\1/'
-        return 1
-    fi
-    # 输出错误信息
-    echo $recordRS | sed 's/.\+,"message":"\([^"]\+\)".\+/\1/'
-}
-
-# 动态检查更新
-# 参数: 主域名 子域名
-arDdnsCheck() {
-    local postRS
-    local hostIP=$(arIpAdress)
-    local lastIP=$(arNslookup "${2}.${1}")
-    echo "hostIP: ${hostIP}"
-    echo "lastIP: ${lastIP}"
+    # 获得旧记录IP
+    lastIP=$(arApiPost "Record.Info" "domain_id=${domainID}&record_id=${recordID}")
+    lastIP=$(echo $lastIP | sed 's/.\+"value":"\([.0-9]\+\)".\+/\1/')
+    echo "lastIP $lastIP"
+    hostIP=$(arIpAdress)
+    echo "hostIP $hostIP"
     if [ "$lastIP" != "$hostIP" ]; then
-        postRS=$(arDdnsUpdate $1 $2)
-        echo "postRS: ${postRS}"
-        if [ $? -ne 1 ]; then
-            return 0
+        
+        # 更新记录IP
+        recordRS=$(arApiPost "Record.Ddns" "domain_id=${domainID}&record_id=${recordID}&sub_domain=${2}&record_line=默认")
+        recordCD=$(echo $recordRS | sed 's/.\+{"code":"\([0-9]\+\)".\+/\1/')
+        # 输出记录IP
+        if [ "$recordCD" == "1" ]; then
+            echo $recordRS | sed 's/.\+,"value":"\([0-9\.]\+\)".\+/\1/'
+            return 1
         fi
+        # 输出错误信息
+        echo $recordRS | sed 's/.\+,"message":"\([^"]\+\)".\+/\1/'
     fi
-    return 1
 }
 
 ###################################################
