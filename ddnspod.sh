@@ -12,7 +12,7 @@
 arPass=arMail=""
 
 # 获得外网地址
-arIpAdress() {
+arIpAddress() {
     local inter="http://members.3322.org/dyndns/getip"
     wget --quiet --output-document=- $inter
 }
@@ -40,7 +40,7 @@ arDdnsUpdate() {
     lastIP=$(arApiPost "Record.Info" "domain_id=${domainID}&record_id=${recordID}")
     lastIP=$(echo $lastIP | sed 's/.\+"value":"\([.0-9]\+\)".\+/\1/')
     echo "lastIP $lastIP"
-    hostIP=$(arIpAdress)
+    hostIP=$(arIpAddress)
     echo "hostIP $hostIP"
     if [ "$lastIP" != "$hostIP" ]; then
         
