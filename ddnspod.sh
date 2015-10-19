@@ -23,7 +23,7 @@ arApiPost() {
     local agent="AnripDdns/5.07(mail@anrip.com)"
     local inter="https://dnsapi.cn/${1:?'Info.Version'}"
     local param="login_email=${arMail}&login_password=${arPass}&format=json&${2}"
-    wget --quiet --no-check-certificate --output-document=- --user-agent=$agent --post-data $param $inter
+    curl -k -X POST --user-agent $agent -d $param $inter
 }
 
 # 更新记录信息
